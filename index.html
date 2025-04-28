@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todo List</title>
+<style>
+  body {
+    font-family: sans-serif;
+    max-width: 400px;
+    margin: 20px auto;
+  }
+  h1 {
+    text-align: center;
+  }
+  .input-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .input-area input[type="text"] {
+    flex: 1;
+    padding: 8px;
+    font-size: 1rem;
+  }
+  .input-area button {
+    padding: 8px;
+  }
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #ccc;
+    padding: 5px 0;
+  }
+  .done-text {
+    text-decoration: line-through;
+    color: #aaa;
+  }
+  .delete-btn {
+    margin-left: auto;
+    color: #fff;
+    background: #d33;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  .delete-btn:hover {
+    background: #a11;
+  }
+</style>
+</head>
+<body>
+
+<h1>Todo List</h1>
+<div class="input-area">
+  <input type="text" id="todo-input" placeholder="やることを入力" />
+  <button id="add-btn">追加</button>
+</div>
+<ul id="todo-list"></ul>
+
+<script>
+  function loadTodos() {
+    const stored = localStorage.getItem('todos');
+    return stored ? JSON.parse(stored) : [];
+  }
+
+  function saveTodos(todos) {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  }
+
+  const inputEl = document.getElementById('todo-input');
+  const addBtn = document.getElementById('add-btn');
+  const todoListEl = document.getElementById('todo-list');
+
+  let todos = loadTodos();
+
+  function renderTodos() {
+    todoListEl.innerHTML = '';
+    todos.forEach((todo, index) => {
+      const li = document.createElement('li');
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = todo.done;
+      checkbox.addEventListener('change', () => {
+        todos[index].done = checkbox.checked;
+        saveTodos(todos);
+        renderTodos();
+      });
+
+      const span = document.createElement('span');
+      span.textContent = todo.text;
+      if (todo.done) {
+        span.classList.add('done-text');
+      }
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '削除';
+      delBtn.classList.add('delete-btn');
+      delBtn.addEventListener('click', () => {
+        todos.splice(index, 1);
+        saveTodos(todos);
+        renderTodos();
+      });
+
+      li.appendChild(checkbox);
+      li.appendChild(span);
+      li.appendChild(delBtn);
+      todoListEl.appendChild(li);
+    });
+  }
+
+  function addTodo() {
+    const text = inputEl.value.trim();
+    if (text) {
+      todos.push({ text: text, done: false });
+      saveTodos(todos);
+      renderTodos();
+      inputEl.value = '';
+    }
+  }
+
+  addBtn.addEventListener('click', addTodo);
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      addTodo();
+    }
+  });
+
+  renderTodos();
+</script>
+
+</body>
+</html>
