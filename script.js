@@ -59,7 +59,6 @@ function saveToLocalStorage() {
   try {
     localStorage.setItem('todos', JSON.stringify(state.todos));
     localStorage.setItem('tags', JSON.stringify(Array.from(state.tags)));
-    console.log('Data saved to localStorage');
   } catch (error) {
     console.error('Error saving to localStorage:', error);
   }
@@ -67,7 +66,6 @@ function saveToLocalStorage() {
 
 // 統計情報の更新
 function updateStats() {
-  console.log('Updating stats...');
   const total = state.todos.length;
   const completed = state.todos.filter(todo => todo.completed).length;
   const pending = total - completed;
@@ -153,18 +151,36 @@ function updateTodoLists() {
   // 未完了タスク描画
   todoListElem.innerHTML = incomplete.map(todo => `
     <li class="todo-item ${isOverdue(todo) ? 'overdue' : ''}" data-id="${todo.id}">
-      <div class="todo-content">
-        <span class="priority-badge priority-${todo.priority}">${getPriorityLabel(todo.priority)}</span>
+      <div class="todo-main">
         <span class="todo-text">${todo.text}</span>
-        ${todo.dueDate ? `<span class="due-date ${isOverdue(todo) ? 'overdue' : ''}">${formatDate(todo.dueDate)}</span>` : ''}
-        <div class="todo-tags">
-          ${(todo.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+        <div class="action-menu">
+          <button class="menu-button" onclick="toggleActionMenu(event, ${todo.id})" title="アクション">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <div class="menu-dropdown" id="menu-${todo.id}">
+            <div class="menu-item edit" onclick="startEdit(${todo.id})">
+              <i class="fas fa-edit"></i>
+              <span>編集</span>
+            </div>
+            <div class="menu-item complete" onclick="toggleComplete(${todo.id})">
+              <i class="fas fa-check"></i>
+              <span>完了</span>
+            </div>
+            <div class="menu-item delete" onclick="deleteTodo(${todo.id})">
+              <i class="fas fa-trash"></i>
+              <span>削除</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="todo-actions">
-        <button class="edit" onclick="startEdit(${todo.id})">編集</button>
-        <button class="complete" onclick="toggleComplete(${todo.id})">完了</button>
-        <button class="delete" onclick="deleteTodo(${todo.id})">削除</button>
+      <div class="todo-meta">
+        ${todo.priority > 0 ? `<span class="priority-badge priority-${todo.priority}">${getPriorityLabel(todo.priority)}</span>` : ''}
+        ${todo.dueDate ? `<span class="due-date ${isOverdue(todo) ? 'overdue' : ''}">${formatDate(todo.dueDate)}</span>` : ''}
+        ${(todo.tags || []).length > 0 ? `
+          <div class="todo-tags">
+            ${(todo.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+          </div>
+        ` : ''}
       </div>
     </li>
   `).join('');
@@ -172,21 +188,80 @@ function updateTodoLists() {
   // 完了済みタスク描画
   completedListElem.innerHTML = completed.map(todo => `
     <li class="todo-item completed" data-id="${todo.id}">
-      <div class="todo-content">
-        <span class="priority-badge priority-${todo.priority}">${getPriorityLabel(todo.priority)}</span>
+      <div class="todo-main">
         <span class="todo-text">${todo.text}</span>
-        ${todo.dueDate ? `<span class="due-date">${formatDate(todo.dueDate)}</span>` : ''}
-        <div class="todo-tags">
-          ${(todo.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+        <div class="action-menu">
+          <button class="menu-button" onclick="toggleActionMenu(event, ${todo.id})" title="アクション">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <div class="menu-dropdown" id="menu-${todo.id}">
+            <div class="menu-item edit" onclick="startEdit(${todo.id})">
+              <i class="fas fa-edit"></i>
+              <span>編集</span>
+            </div>
+            <div class="menu-item complete" onclick="toggleComplete(${todo.id})">
+              <i class="fas fa-undo"></i>
+              <span>未完了</span>
+            </div>
+            <div class="menu-item delete" onclick="deleteTodo(${todo.id})">
+              <i class="fas fa-trash"></i>
+              <span>削除</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="todo-actions">
-        <button class="edit" onclick="startEdit(${todo.id})">編集</button>
-        <button class="complete" onclick="toggleComplete(${todo.id})">未完了</button>
-        <button class="delete" onclick="deleteTodo(${todo.id})">削除</button>
+      <div class="todo-meta">
+        ${todo.priority > 0 ? `<span class="priority-badge priority-${todo.priority}">${getPriorityLabel(todo.priority)}</span>` : ''}
+        ${todo.dueDate ? `<span class="due-date">${formatDate(todo.dueDate)}</span>` : ''}
+        ${(todo.tags || []).length > 0 ? `
+          <div class="todo-tags">
+            ${(todo.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+          </div>
+        ` : ''}
       </div>
     </li>
   `).join('');
+
+  // アクションメニューの制御を設定
+  setupActionMenus();
+}
+
+// アクションメニューの制御
+function setupActionMenus() {
+  // メニュー外クリックで閉じる
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.action-menu')) {
+      document.querySelectorAll('.menu-dropdown.active').forEach(menu => {
+        menu.classList.remove('active');
+      });
+      document.querySelectorAll('.menu-button.active').forEach(button => {
+        button.classList.remove('active');
+      });
+    }
+  });
+}
+
+// アクションメニューのトグル
+function toggleActionMenu(event, todoId) {
+  event.stopPropagation();
+  const menu = document.getElementById(`menu-${todoId}`);
+  const button = event.currentTarget;
+
+  // 他のメニューを閉じる
+  document.querySelectorAll('.menu-dropdown.active').forEach(m => {
+    if (m.id !== `menu-${todoId}`) {
+      m.classList.remove('active');
+    }
+  });
+  document.querySelectorAll('.menu-button.active').forEach(b => {
+    if (b !== button) {
+      b.classList.remove('active');
+    }
+  });
+
+  // クリックされたメニューをトグル
+  menu.classList.toggle('active');
+  button.classList.toggle('active');
 }
 
 // 完了済みタスクのトグル
@@ -344,8 +419,6 @@ function formatDate(date) {
 
 // Todoの追加
 function addTodo(text, tags = [], priority = 0, dueDate = null) {
-  console.log('Adding new todo:', { text, tags, priority, dueDate });
-  
   const todo = {
     id: Date.now(),
     text,
@@ -360,9 +433,6 @@ function addTodo(text, tags = [], priority = 0, dueDate = null) {
   if (tags && tags.length > 0) {
     tags.forEach(tag => state.tags.add(tag));
   }
-  
-  console.log('New todo added:', todo);
-  debugState();
   
   updateTags();
   updateTodoLists();
@@ -491,14 +561,66 @@ function executeDelete(id) {
   saveToLocalStorage();
 }
 
-// イベントリスナーの設定
+// サイドバーの制御
+function setupSidebar() {
+  const filterButton = document.getElementById('filterButton');
+  const tagButton = document.getElementById('tagButton');
+  const filterMenu = document.querySelector('.filter-menu');
+  const tagMenu = document.querySelector('.tag-menu');
+
+  // フィルターメニューの制御
+  filterButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    filterMenu.classList.toggle('active');
+    tagMenu.classList.remove('active');
+    filterButton.classList.toggle('active');
+    tagButton.classList.remove('active');
+  });
+
+  // タグメニューの制御
+  tagButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    tagMenu.classList.toggle('active');
+    filterMenu.classList.remove('active');
+    tagButton.classList.toggle('active');
+    filterButton.classList.remove('active');
+  });
+
+  // メニュー外クリックで閉じる
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.filter-menu') && !e.target.closest('#filterButton')) {
+      filterMenu.classList.remove('active');
+      filterButton.classList.remove('active');
+    }
+    if (!e.target.closest('.tag-menu') && !e.target.closest('#tagButton')) {
+      tagMenu.classList.remove('active');
+      tagButton.classList.remove('active');
+    }
+  });
+
+  // 検索ボックスの制御
+  const searchBox = document.querySelector('.search-box');
+  const searchInput = document.querySelector('.search-input');
+
+  searchBox.addEventListener('mouseenter', () => {
+    searchInput.style.display = 'block';
+    searchInput.focus();
+  });
+
+  searchBox.addEventListener('mouseleave', () => {
+    if (!searchInput.value) {
+      searchInput.style.display = 'none';
+    }
+  });
+}
+
+// イベントリスナーの設定を更新
 function setupEventListeners() {
-  console.log('Setting up event listeners...');
+  setupSidebar();
   
   if (elements.todoForm) {
     elements.todoForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      console.log('Form submitted');
       
       const text = elements.todoInput.value.trim();
       if (text) {
@@ -507,7 +629,6 @@ function setupEventListeners() {
         const priority = parseInt(elements.prioritySelect?.value || '0');
         const dueDate = elements.dueDateInput?.value || null;
         
-        console.log('Form data:', { text, selectedTags, priority, dueDate });
         addTodo(text, selectedTags, priority, dueDate);
         
         elements.todoInput.value = '';
@@ -572,14 +693,47 @@ function setupEventListeners() {
   }
 }
 
+// モバイル用タスク追加フォームの制御
+const addTaskFab = document.getElementById('addTaskFab');
+const mobileTodoForm = document.querySelector('.mobile-todo-form');
+const closeBtn = document.querySelector('.close-btn');
+const mobileTodoFormElement = document.getElementById('mobileTodoForm');
+const mobileTaskInput = document.getElementById('mobileTaskInput');
+const mobilePrioritySelect = document.getElementById('mobilePrioritySelect');
+const mobileDueDateInput = document.getElementById('mobileDueDateInput');
+
+addTaskFab.addEventListener('click', () => {
+  mobileTodoForm.classList.add('active');
+});
+
+closeBtn.addEventListener('click', () => {
+  mobileTodoForm.classList.remove('active');
+});
+
+mobileTodoFormElement.addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  const task = {
+    id: Date.now(),
+    text: mobileTaskInput.value,
+    completed: false,
+    priority: mobilePrioritySelect.value,
+    dueDate: mobileDueDateInput.value,
+    tags: []
+  };
+
+  addTodo(task);
+  mobileTodoForm.classList.remove('active');
+  mobileTaskInput.value = '';
+  mobilePrioritySelect.value = 'low';
+  mobileDueDateInput.value = '';
+});
+
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM Content Loaded');
-  checkElements();
   setupEventListeners();
   setupCompletedToggle();
   updateStats();
   updateTags();
   updateTodoLists();
-  debugState();
 }); 

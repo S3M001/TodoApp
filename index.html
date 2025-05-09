@@ -5,29 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Todoアプリ</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   </head>
   <body>
     <div class="app-container">
       <!-- サイドバー -->
       <aside class="sidebar">
-        <div class="search-box">
-          <input type="text" placeholder="タスクを検索..." />
+        <div class="sidebar-header">
+          <div class="action-buttons">
+            <button class="action-button" id="filterButton" title="フィルター">
+              <i class="fas fa-filter"></i>
+            </button>
+            <button class="action-button" id="tagButton" title="タグ">
+              <i class="fas fa-tags"></i>
+            </button>
+          </div>
+          <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="タスクを検索..." />
+          </div>
         </div>
-        <div class="sort-options">
-          <select>
-            <option value="date">日付順</option>
-            <option value="priority">優先度順</option>
-            <option value="dueDate">期限順</option>
-          </select>
+
+        <div class="filter-menu">
+          <div class="filter-section">
+            <h3>並び替え</h3>
+            <div class="sort-options">
+              <select>
+                <option value="date">日付順</option>
+                <option value="priority">優先度順</option>
+                <option value="dueDate">期限順</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-section">
+            <h3>表示設定</h3>
+            <label class="show-completed-toggle">
+              <input type="checkbox" checked />
+              <span>完了済みを表示</span>
+            </label>
+          </div>
         </div>
-        <div class="filter-options">
-          <label class="show-completed-toggle">
-            <input type="checkbox" checked />
-            完了済みを表示
-          </label>
-        </div>
-        <div class="tag-filter">
-          <!-- タグリストはJavaScriptで動的に生成 -->
+
+        <div class="tag-menu">
+          <input type="text" class="tag-search" placeholder="タグを検索..." />
+          <div class="tag-list">
+            <!-- タグリストはJavaScriptで動的に生成 -->
+          </div>
         </div>
       </aside>
 
@@ -71,8 +94,29 @@
             </ul>
           </div>
         </div>
+
+        <div class="mobile-todo-form">
+          <div class="form-header">
+            <h2>新しいタスクを追加</h2>
+            <button class="close-btn">&times;</button>
+          </div>
+          <form id="mobileTodoForm">
+            <div class="input-group">
+              <input type="text" id="mobileTaskInput" placeholder="新しいタスクを入力" required>
+              <select id="mobilePrioritySelect">
+                <option value="low">優先度: 低</option>
+                <option value="medium">優先度: 中</option>
+                <option value="high">優先度: 高</option>
+              </select>
+              <input type="datetime-local" id="mobileDueDateInput">
+              <button type="submit">追加</button>
+            </div>
+          </form>
+        </div>
       </main>
     </div>
+
+    <button class="fab" id="addTaskFab">+</button>
 
     <script src="script.js"></script>
   </body>
