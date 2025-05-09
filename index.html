@@ -3,17 +3,77 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Todo List</title>
+    <title>Todoアプリ</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Todo List</h1>
-    <div class="input-area">
-      <input type="text" id="todo-input" placeholder="やることを入力" />
-      <button id="add-btn">追加</button>
-    </div>
-    <ul id="todo-list"></ul>
+    <div class="app-container">
+      <!-- サイドバー -->
+      <aside class="sidebar">
+        <div class="search-box">
+          <input type="text" placeholder="タスクを検索..." />
+        </div>
+        <div class="sort-options">
+          <select>
+            <option value="date">日付順</option>
+            <option value="priority">優先度順</option>
+            <option value="dueDate">期限順</option>
+          </select>
+        </div>
+        <div class="filter-options">
+          <label class="show-completed-toggle">
+            <input type="checkbox" checked />
+            完了済みを表示
+          </label>
+        </div>
+        <div class="tag-filter">
+          <!-- タグリストはJavaScriptで動的に生成 -->
+        </div>
+      </aside>
 
-    <script src="js.js"></script>
+      <!-- メインコンテンツ -->
+      <main class="main-content">
+        <!-- 統計情報 -->
+        <div class="stats-bar">
+          <!-- 統計情報はJavaScriptで動的に生成 -->
+        </div>
+
+        <!-- Todoコンテナ -->
+        <div class="todo-container">
+          <!-- 入力フォーム -->
+          <form class="todo-form">
+            <div class="input-group">
+              <input type="text" placeholder="新しいタスクを入力..." required />
+              <select class="priority-select">
+                <option value="0">優先度なし</option>
+                <option value="1">低</option>
+                <option value="2">中</option>
+                <option value="3">高</option>
+              </select>
+              <input type="datetime-local" class="due-date-input" />
+              <button type="submit">追加</button>
+            </div>
+            <div class="tag-selector">
+              <!-- タグセレクターはJavaScriptで動的に生成 -->
+            </div>
+          </form>
+
+          <!-- Todoリスト（未完了タスク） -->
+          <ul class="todo-list">
+            <!-- TodoアイテムはJavaScriptで動的に生成 -->
+          </ul>
+
+          <!-- 完了済みタスクのトグル＆リスト -->
+          <div class="completed-section">
+            <button type="button" class="toggle-completed-btn" aria-expanded="false">▶ 完了済みタスクを表示</button>
+            <ul class="completed-list" style="display: none;">
+              <!-- 完了済みタスクはJavaScriptで動的に生成 -->
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
   </body>
 </html>
