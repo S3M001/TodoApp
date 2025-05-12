@@ -598,20 +598,20 @@ function setupSidebar() {
     }
   });
 
-  // 検索ボックスの制御
-  const searchBox = document.querySelector('.search-box');
-  const searchInput = document.querySelector('.search-input');
+  // // 検索ボックスの制御 →TODO モバイル端末に対応させる
+  // const searchBox = document.querySelector('.search-box');
+  // const searchInput = document.querySelector('.search-input');
 
-  searchBox.addEventListener('mouseenter', () => {
-    searchInput.style.display = 'block';
-    searchInput.focus();
-  });
+  // searchBox.addEventListener('mouseenter', () => {
+  //   searchInput.style.display = 'block';
+  //   searchInput.focus();
+  // });
 
-  searchBox.addEventListener('mouseleave', () => {
-    if (!searchInput.value) {
-      searchInput.style.display = 'none';
-    }
-  });
+  // searchBox.addEventListener('mouseleave', () => {
+  //   if (!searchInput.value) {
+  //     searchInput.style.display = 'none';
+  //   }
+  // });
 }
 
 // イベントリスナーの設定を更新
